@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЭЛЕКТРИЧЕСКИЙ КОНВЕРТЕР</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: linear-gradient(145deg, #161b22, #0d1117);
+            --card-shadow: 8px 8px 16px #06080a, -8px -8px 16px #141a24;
+            --input-bg: #090d12;
+            --input-shadow: inset 3px 3px 6px #040608, inset -3px -3px 6px #0e141c;
+            --input-border: #21262d;
+            --text-color: #c9d1d9;
+            --accent-color: #238636;
+            --accent-hover: #2ea043;
+            --accent-shadow: 0 4px 12px rgba(35, 134, 54, 0.4);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size: 16px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            box-sizing: border-box;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 2;
+            border: 1px solid var(--input-border);
+        }
+
+        /* Эталонный водяной знак БЛiК */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 25px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--text-color);
+            opacity: 0.12;
+            pointer-events: none;
+            user-select: none;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+
+        .settings-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--input-border);
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.3), -3px -3px 6px rgba(255,255,255,0.03);
+            color: var(--text-color);
+            font-size: 20px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            transform: scale(1.05);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            box-shadow: var(--input-shadow);
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: inset 3px 3px 6px #000, 0 0 8px var(--accent-color);
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--accent-shadow);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #21262d;
+            box-shadow: 4px 4px 8px #080a0e, -4px -4px 8px #1a222c;
+        }
+
+        /* Модальное окно настроек */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--input-border);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .setting-row {
+            margin-bottom: 16px;
+        }
+
+        .setting-row label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-row select, .setting-row input[type="color"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+            box-shadow: var(--input-shadow);
+            box-sizing: border-box;
+        }
+
+        .setting-row input[type="color"] {
+            height: 40px;
+            padding: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Эталонный водяной знак -->
+    <div class="watermark">БЛiК</div>
+
+    <div class="container">
+        <div class="header">
+            <h2>ЭЛЕКТРО КОНВЕРТЕР</h2>
+            <button class="settings-btn" onclick="openSettings()" title="Настройки">⚙️</button>
+        </div>
+
+        <div class="field-group">
+            <label for="voltage">ВОЛЬТ (U, В)</label>
+            <input type="number" id="voltage" placeholder="Например: 12">
+        </div>
+
+        <div class="field-group">
+            <label for="current">АМПЕР (I, А)</label>
+            <input type="number" id="current" placeholder="Например: 5">
+        </div>
+
+        <div class="field-group">
+            <label for="power">ВАТТ (P, Вт)</label>
+            <input type="number" id="power" placeholder="Например: 60">
+        </div>
+
+        <div class="field-group">
+            <label for="watt_hours">ВАТТ·ЧАСОВ (Wh)</label>
+            <input type="number" id="watt_hours" placeholder="Например: 600">
+        </div>
+
+        <div class="field-group">
+            <label for="amp_hours">АМПЕР·ЧАСОВ (Ah)</label>
+            <input type="number" id="amp_hours" placeholder="Например: 50">
+        </div>
+
+
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="clearAll()">Очистить всё</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Настройки интерфейса</h3>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+
+            <div class="setting-row">
+                <label for="setTheme">Тема оформления (8 вариантов):</label>
+                <select id="setTheme" onchange="applyPresetTheme()">
+                    <option value="dark">Темный карбон (Dark)</option>
+                    <option value="light">Светлый объёмный (Light)</option>
+                    <option value="cyberpunk">Киберпанк (Cyberpunk)</option>
+                    <option value="ocean">Морская волна (Ocean)</option>
+                    <option value="retro">Ретро винтаж (Retro/Sepia)</option>
+                    <option value="carbon">Техно карбон (Carbon)</option>
+                    <option value="neon">Неоновая ночь (Neon Night)</option>
+                    <option value="gold">Золотой песок (Solar Gold)</option>
+                </select>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 15px 0;">
+
+            <div class="setting-row">
+                <label>Цвет фона: <input type="color" id="setBgColor" onchange="updateStyleCustom()"></label>
+            </div>
+            <div class="setting-row">
+                <label>Цвет текста: <input type="color" id="setTextColor" onchange="updateStyleCustom()"></label>
+            </div>
+            <div class="setting-row">
+                <label>Цвет акцента: <input type="color" id="setAccentColor" onchange="updateStyleCustom()"></label>
+            </div>
+            <div class="setting-row">
+                <label for="setFontFamily">Шрифт:</label>
+                <select id="setFontFamily" onchange="updateStyleCustom()">
+                    <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+                    <option value="Courier New, Courier, monospace">Monospace</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label for="setFontSize">Размер шрифта:</label>
+                <select id="setFontSize" onchange="updateStyleCustom()">
+                    <option value="14px">Мелкий (14px)</option>
+                    <option value="16px" selected>Нормальный (16px)</option>
+                    <option value="18px">Крупный (18px)</option>
+                </select>
+            </div>
+
+            <div class="actions" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="resetSettings()">Сбросить</button>
+                <button class="btn" onclick="closeSettings()">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const themes = {
+            dark: { bg: '#0d1117', card: 'linear-gradient(145deg, #161b22, #0d1117)', text: '#c9d1d9', inputBg: '#090d12', border: '#21262d', accent: '#238636', accentHover: '#2ea043', shadow: '8px 8px 16px #06080a, -8px -8px 16px #141a24' },
+            light: { bg: '#e2e8f0', card: 'linear-gradient(145deg, #ffffff, #cbd5e1)', text: '#1e293b', inputBg: '#f1f5f9', border: '#94a3b8', accent: '#3b82f6', accentHover: '#2563eb', shadow: '8px 8px 16px #b8c2cc, -8px -8px 16px #ffffff' },
+            cyberpunk: { bg: '#0b001a', card: 'linear-gradient(145deg, #1a0033, #0b001a)', text: '#00ffcc', inputBg: '#120024', border: '#ff007f', accent: '#ff007f', accentHover: '#ff3399', shadow: '8px 8px 16px #04000a, -8px -8px 16px #1e003d' },
+            ocean: { bg: '#022c22', card: 'linear-gradient(145deg, #064e3b, #022c22)', text: '#ecfdf5', inputBg: '#011c16', border: '#047857', accent: '#10b981', accentHover: '#34d399', shadow: '8px 8px 16px #011611, -8px -8px 16px #034233' },
+            retro: { bg: '#2b221e', card: 'linear-gradient(145deg, #3d322c, #2b221e)', text: '#f4ebd0', inputBg: '#1f1815', border: '#66554b', accent: '#d97706', accentHover: '#f59e0b', shadow: '8px 8px 16px #171210, -8px -8px 16px #3f322c' },
+            carbon: { bg: '#111111', card: 'linear-gradient(145deg, #1f1f1f, #111111)', text: '#e0e0e0', inputBg: '#0a0a0a', border: '#333333', accent: '#e50914', accentHover: '#f6121d', shadow: '8px 8px 16px #050505, -8px -8px 16px #1d1d1d' },
+            neon: { bg: '#000000', card: 'linear-gradient(145deg, #0a0f1d, #000000)', text: '#38bdf8', inputBg: '#030712', border: '#0284c7', accent: '#0284c7', accentHover: '#38bdf8', shadow: '8px 8px 16px #000000, -8px -8px 16px #0f1d36' },
+            gold: { bg: '#1c1811', card: 'linear-gradient(145deg, #2b241a, #1c1811)', text: '#fef08a', inputBg: '#120f0a', border: '#78350f', accent: '#d97706', accentHover: '#fbbf24', shadow: '8px 8px 16px #0e0c08, -8px -8px 16px #2a221a' }
+        };
+
+        const fields = ['voltage', 'current', 'power', 'watt_hours', 'amp_hours', 'hours'];
+        let activeField = null;
+
+        function getVal(id) {
+            const val = parseFloat(document.getElementById(id).value);
+            return isNaN(val) ? null : val;
+        }
+
+        function setVal(id, val) {
+            if (id === activeField) return; // Не перезаписываем активно редактируемое поле
+            const el = document.getElementById(id);
+            if (val !== null && !isNaN(val) && isFinite(val) && val >= 0) {
+                el.value = Number(val.toFixed(2));
+            } else {
+                el.value = '';
+            }
+        }
+
+        // Моментальная функция автоперерасчета при нажатии каждой клавиши
+        function autoCalculate(changedSource) {
+            activeField = changedSource;
+
+            let U = getVal('voltage');
+            let I = getVal('current');
+            let P = getVal('power');
+            let Wh = getVal('watt_hours');
+            let Ah = getVal('amp_hours');
+            let h = getVal('hours');
+
+            // Связки Ома и Мощности
+            if (changedSource === 'voltage') {
+                if (I !== null) { P = U * I; setVal('power', P); }
+                else if (P !== null && U !== 0) { I = P / U; setVal('current', I); }
+            } else if (changedSource === 'current') {
+                if (U !== null) { P = U * I; setVal('power', P); }
+                else if (P !== null && I !== 0) { U = P / I; setVal('voltage', U); }
+            } else if (changedSource === 'power') {
+                if (U !== null && U !== 0) { I = P / U; setVal('current', I); }
+                else if (I !== null && I !== 0) { U = P / I; setVal('voltage', U); }
+            }
+
+            // Актуализация базовых значений P, U, I
+            U = getVal('voltage');
+            I = getVal('current');
+            P = getVal('power');
+
+            // Расчет Wh и Ah при изменении любых параметров
+            if (changedSource === 'watt_hours') {
+                if (U !== null && U !== 0) { Ah = Wh / U; setVal('amp_hours', Ah); }
+                if (P !== null && P !== 0) { h = Wh / P; setVal('hours', h); }
+                else if (h !== null && h !== 0) { P = Wh / h; setVal('power', P); }
+            } else if (changedSource === 'amp_hours') {
+                if (U !== null) { Wh = Ah * U; setVal('watt_hours', Wh); }
+                if (I !== null && I !== 0) { h = Ah / I; setVal('hours', h); }
+                else if (h !== null && h !== 0) { I = Ah / h; setVal('current', I); }
+            } else if (changedSource === 'hours') {
+                if (P !== null) { Wh = P * h; setVal('watt_hours', Wh); }
+                if (I !== null) { Ah = I * h; setVal('amp_hours', Ah); }
+            } else {
+                // Если менялись V, I или P — пересчитываем Wh и Ah (при наличии времени h или энергии)
+                if (h !== null) {
+                    if (P !== null) { Wh = P * h; setVal('watt_hours', Wh); }
+                    if (I !== null) { Ah = I * h; setVal('amp_hours', Ah); }
+                } else if (U !== null) {
+                    if (Ah !== null) { Wh = Ah * U; setVal('watt_hours', Wh); }
+                    else if (Wh !== null && U !== 0) { Ah = Wh / U; setVal('amp_hours', Ah); }
+                }
+            }
+        }
+
+        // Навешивание события 'input' на все поля для абсолютного автоперерасчета
+        fields.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', () => autoCalculate(id));
+        });
+
+        function clearAll() {
+            fields.forEach(id => {
+                document.getElementById(id).value = '';
+            });
+        }
+
+        // Управление настройками и стилями
+        const modal = document.getElementById('settingsModal');
+
+        function openSettings() { modal.style.display = 'flex'; }
+        function closeSettings() { modal.style.display = 'none'; saveSettings(); }
+
+        function applyPresetTheme() {
+            const themeName = document.getElementById('setTheme').value;
+            const t = themes[themeName];
+            if (t) {
+                document.getElementById('setBgColor').value = t.bg;
+                document.getElementById('setTextColor').value = t.text;
+                document.getElementById('setAccentColor').value = t.accent;
+                
+                const root = document.documentElement;
+                root.style.setProperty('--bg-color', t.bg);
+                root.style.setProperty('--card-bg', t.card);
+                root.style.setProperty('--card-shadow', t.shadow);
+                root.style.setProperty('--input-bg', t.inputBg);
+                root.style.setProperty('--input-border', t.border);
+                root.style.setProperty('--text-color', t.text);
+                root.style.setProperty('--accent-color', t.accent);
+                root.style.setProperty('--accent-hover', t.accentHover);
+            }
+        }
+
+        function updateStyleCustom() {
+            const root = document.documentElement;
+            const bg = document.getElementById('setBgColor').value;
+            const text = document.getElementById('setTextColor').value;
+            const accent = document.getElementById('setAccentColor').value;
+            const fontFamily = document.getElementById('setFontFamily').value;
+            const fontSize = document.getElementById('setFontSize').value;
+
+            root.style.setProperty('--bg-color', bg);
+            root.style.setProperty('--text-color', text);
+            root.style.setProperty('--accent-color', accent);
+            root.style.setProperty('--font-family', fontFamily);
+            root.style.setProperty('--font-size', fontSize);
+        }
+
+        function saveSettings() {
+            const settings = {
+                theme: document.getElementById('setTheme').value,
+                bg: document.getElementById('setBgColor').value,
+                text: document.getElementById('setTextColor').value,
+                accent: document.getElementById('setAccentColor').value,
+                fontFamily: document.getElementById('setFontFamily').value,
+                fontSize: document.getElementById('setFontSize').value
+            };
+            localStorage.setItem('converter_3d_settings_blik', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('converter_3d_settings_blik');
+            if (saved) {
+                const s = JSON.parse(saved);
+                document.getElementById('setTheme').value = s.theme || 'dark';
+                document.getElementById('setBgColor').value = s.bg;
+                document.getElementById('setTextColor').value = s.text;
+                document.getElementById('setAccentColor').value = s.accent;
+                document.getElementById('setFontFamily').value = s.fontFamily;
+                document.getElementById('setFontSize').value = s.fontSize;
+                applyPresetTheme();
+                updateStyleCustom();
+            } else {
+                applyPresetTheme();
+            }
+        }
+
+        function resetSettings() {
+            localStorage.removeItem('converter_3d_settings_blik');
+            location.reload();
+        }
+
+        window.onload = loadSettings;
+    </script>
+</body>
+</html>
